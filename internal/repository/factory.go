@@ -31,14 +31,13 @@ func NewDatabaseConnection(dbType DatabaseType) (ProductRepository, error) {
 // NewPostgresRepository создает подключение к Postgres
 func NewPostgresRepository() (ProductRepository, error) {
 	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_PASSWORD"),
+		os.Getenv("USER_PRODUCT_SERVICE"),
+		os.Getenv("PASSWORD_PRODUCT_SERVICE"),
 		os.Getenv("DB_HOST"),
 		os.Getenv("DB_PORT"),
-		os.Getenv("DB_NAME"),
+		os.Getenv("DB_PRODUCT_SERVICE"),
 		os.Getenv("DB_SSLMODE"),
 	)
-
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %v", err)

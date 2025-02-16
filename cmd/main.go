@@ -8,15 +8,13 @@ import (
 	"product_service/internal/delivery/rest"
 	"product_service/internal/repository"
 	"product_service/internal/usecase"
-
-	"github.com/joho/godotenv"
 )
 
 func main() {
 	// Загружаем .env
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	// if err := godotenv.Load(); err != nil {
+	// 	log.Fatal("Error loading .env file")
+	// }
 
 	// Выбираем базу данных
 	dbType := repository.DatabaseType(os.Getenv("DB_TYPE"))

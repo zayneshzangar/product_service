@@ -3,6 +3,7 @@ package rest
 import (
 	"encoding/json"
 	"net/http"
+	"product_service/internal/entity"
 	"product_service/internal/usecase"
 	"strconv"
 
@@ -44,7 +45,6 @@ func (h *ProductHandler) CreateProductHandler(w http.ResponseWriter, r *http.Req
 	json.NewEncoder(w).Encode(product)
 }
 
-
 // GetProductByIDHandler — обработчик для получения продукта по ID
 func (h *ProductHandler) GetProductByIDHandler(w http.ResponseWriter, r *http.Request) {
 	// Получаем ID из URL
@@ -54,21 +54,21 @@ func (h *ProductHandler) GetProductByIDHandler(w http.ResponseWriter, r *http.Re
 		http.Error(w, "missing product ID", http.StatusBadRequest)
 		return
 	}
-	
+
 	// Конвертируем строку в int64
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
 		http.Error(w, "invalid product ID", http.StatusBadRequest)
 		return
 	}
-	
+
 	// Получаем продукт из usecase
 	product, err := h.productUseCase.GetProductByID(id)
 	if err != nil {
 		http.Error(w, "product not found", http.StatusNotFound)
 		return
 	}
-	
+
 	// Отправляем ответ в JSON
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(product)
