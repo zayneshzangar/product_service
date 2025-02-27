@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 	"product_service/internal/entity"
 )
@@ -57,5 +58,30 @@ func (r *PostgresProductRepository) Update(product *entity.Product) error {
 
 func (r *PostgresProductRepository) Delete(id int64) error {
 	_, err := r.db.Exec("DELETE FROM products WHERE id=$1", id)
+	return err
+}
+
+// STOCK methods
+func (r *PostgresProductRepository) BeginTransaction() (*sql.Tx, error) {
+	return r.db.Begin()
+}
+
+func (r *PostgresProductRepository) GetProductByID(ctx context.Context, productID int64) (*entity.Product, error) {
+	product := &entity.Product{}
+	err := r.db.QueryRowContext(ctx, "SELECT id, stock FROM products WHERE id = $1", productID).
+		Scan(&product.ID, &product.Stock)
+	if err != nil {
+		return nil, err
+	}
+	return product, nil
+}
+
+func (r *PostgresProductRepository) ReserveStock(ctx context.Context, tx *sql.Tx, orderID, productID int64, quantity int) error {
+	_, err := tx.ExecContext(ctx, "INSERT INTO reserved_stock (order_id, product_id, quantity) VALUES ($1, $2, $3)", orderID, productID, quantity)
+	return err
+}
+
+func (r *PostgresProductRepository) ClearExpiredReservations(ctx context.Context) error {
+	_, err := r.db.ExecContext(ctx, `DELETE FROM reserved_stock WHERE created_at < NOW() - INTERVAL '15 minutes'`)
 	return err
 }

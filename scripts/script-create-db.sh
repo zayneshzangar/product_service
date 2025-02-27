@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source ./env.sh
+source /home/zangar/Documents/product_service/scripts/env.sh
 
 psql -U $ROOT_USER_PSQL -p $DB_PORT -h $DB_HOST \
     -c "CREATE ROLE $USER_PRODUCT_SERVICE WITH PASSWORD '$PASSWORD_PRODUCT_SERVICE';"
@@ -27,4 +27,13 @@ PGPASSWORD=$PASSWORD_PRODUCT_SERVICE psql -U $USER_PRODUCT_SERVICE -p $DB_PORT -
     stock INT NOT NULL,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
+);'
+PGPASSWORD=$PASSWORD_PRODUCT_SERVICE psql -U $USER_PRODUCT_SERVICE -p $DB_PORT -h $DB_HOST \
+    -c 'CREATE TABLE reserved_stock (
+    id SERIAL PRIMARY KEY,
+    order_id INT NOT NULL,
+    product_id INT NOT NULL,
+    quantity INT NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW(),
+    CONSTRAINT unique_order_product UNIQUE (order_id, product_id)
 );'

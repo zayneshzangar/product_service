@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"product_service/internal/entity"
-	"product_service/internal/usecase"
+	"product_service/internal/service"
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -12,11 +12,11 @@ import (
 
 // ProductHandler отвечает за обработку REST-запросов
 type ProductHandler struct {
-	productUseCase usecase.ProductUseCase
+	productUseCase service.ProductUseCase
 }
 
 // NewProductHandler создаёт новый обработчик
-func NewProductHandler(productUseCase usecase.ProductUseCase) *ProductHandler {
+func NewProductHandler(productUseCase service.ProductUseCase) *ProductHandler {
 	return &ProductHandler{productUseCase: productUseCase}
 }
 

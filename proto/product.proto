@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package product;
+
+option go_package = "internal/productpb";
+
+// Определяем сервис ProductService
+service ProductService {
+  rpc CheckAndReserveStock (StockReservationRequest) returns (StockReservationResponse);
+}
+
+// Запрос на проверку и резервирование товаров
+message StockReservationRequest {
+  int64 order_id = 1;
+  repeated OrderItem items = 2;
+}
+
+// Ответ от Product Service
+message StockReservationResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// Элемент заказа
+message OrderItem {
+  int64 product_id = 1;
+  int32 quantity = 2;
+}

@@ -1,21 +1,12 @@
-package usecase
+package product_service
 
 import (
 	"errors"
-	"time"
-
 	"product_service/internal/entity"
 	"product_service/internal/repository"
+	"product_service/internal/service"
+	"time"
 )
-
-// ProductUseCase — интерфейс бизнес-логики
-type ProductUseCase interface {
-	CreateProduct(name, description string, price float64, stock int) (*entity.Product, error)
-	GetProductByID(id int64) (*entity.Product, error)
-	GetAllProducts() ([]*entity.Product, error)
-	UpdateProduct(product *entity.Product) error
-	DeleteProduct(id int64) error
-}
 
 // productUseCase — реализация use case
 type productUseCase struct {
@@ -23,7 +14,7 @@ type productUseCase struct {
 }
 
 // NewProductUseCase создает новый use case
-func NewProductUseCase(productRepo repository.ProductRepository) ProductUseCase {
+func NewProductUseCase(productRepo repository.ProductRepository) service.ProductUseCase {
 	return &productUseCase{productRepo: productRepo} // ВОЗВРАЩАЕМ УКАЗАТЕЛЬ
 }
 
