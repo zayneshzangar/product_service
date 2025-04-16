@@ -12,12 +12,12 @@ import (
 
 // ProductHandler отвечает за обработку REST-запросов
 type ProductHandler struct {
-	productUseCase service.ProductUseCase
+	productService service.ProductService
 }
 
 // NewProductHandler создаёт новый обработчик
-func NewProductHandler(productUseCase service.ProductUseCase) *ProductHandler {
-	return &ProductHandler{productUseCase: productUseCase}
+func NewProductHandler(productService service.ProductService) *ProductHandler {
+	return &ProductHandler{productService: productService}
 }
 
 // CreateProductHandler — обработчик для создания продукта
@@ -26,7 +26,7 @@ func (h *ProductHandler) CreateProductHandler(w http.ResponseWriter, r *http.Req
 		Name        string  `json:"name"`
 		Description string  `json:"description"`
 		Price       float64 `json:"price"`
-		Stock       int     `json:"stock"`
+		Stock       int64     `json:"stock"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -34,7 +34,7 @@ func (h *ProductHandler) CreateProductHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	product, err := h.productUseCase.CreateProduct(req.Name, req.Description, req.Price, req.Stock)
+	product, err := h.productService.CreateProduct(req.Name, req.Description, req.Price, req.Stock)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -62,8 +62,8 @@ func (h *ProductHandler) GetProductByIDHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	// Получаем продукт из usecase
-	product, err := h.productUseCase.GetProductByID(id)
+	// Получаем продукт из Service
+	product, err := h.productService.GetProductByID(id)
 	if err != nil {
 		http.Error(w, "product not found", http.StatusNotFound)
 		return
@@ -76,7 +76,7 @@ func (h *ProductHandler) GetProductByIDHandler(w http.ResponseWriter, r *http.Re
 
 // GetAllProductsHandler — обработчик для получения всех продуктов
 func (h *ProductHandler) GetAllProductsHandler(w http.ResponseWriter, r *http.Request) {
-	products, err := h.productUseCase.GetAllProducts()
+	products, err := h.productService.GetAllProducts()
 	if err != nil {
 		http.Error(w, "failed to fetch products", http.StatusInternalServerError)
 		return
@@ -109,7 +109,7 @@ func (h *ProductHandler) UpdateProductHandler(w http.ResponseWriter, r *http.Req
 	}
 	product.ID = id // Устанавливаем ID из URL
 
-	err = h.productUseCase.UpdateProduct(&product)
+	err = h.productService.UpdateProduct(&product)
 	if err != nil {
 		http.Error(w, "failed to update product", http.StatusInternalServerError)
 		return
@@ -134,7 +134,7 @@ func (h *ProductHandler) DeleteProductHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	err = h.productUseCase.DeleteProduct(id)
+	err = h.productService.DeleteProduct(id)
 	if err != nil {
 		http.Error(w, "failed to delete product", http.StatusInternalServerError)
 		return

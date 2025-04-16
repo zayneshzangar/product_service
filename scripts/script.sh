@@ -7,6 +7,6 @@ if [[ "$1" == "--delete" ]]; then
 else
     echo "Создание и запуск базы данных..."
     /home/zangar/Documents/product_service/scripts/script-psql-run.sh
-    sleep 4
+    sleep 5
     /home/zangar/Documents/product_service/scripts/script-create-db.sh
 fi

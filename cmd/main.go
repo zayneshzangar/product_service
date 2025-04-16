@@ -10,7 +10,8 @@ import (
 	"product_service/internal/repository"
 	"product_service/internal/service/grpc_service"
 	"product_service/internal/service/product_service"
-	"product_service/internal/service/reservation_cleaner"
+
+	// добавляем пакет для CORS
 
 	_ "github.com/lib/pq"
 )
@@ -26,21 +27,22 @@ func main() {
 	if err != nil {
 		log.Fatal("Error creating repository: ", err)
 	}
+	defer repo.Close()
 
-	productUseCase := product_service.NewProductUseCase(repo)
-	stockUseCase := grpc_service.NewStockUseCase(repo)
+	productService := product_service.NewProductService(repo)
+	stockService := grpc_service.NewGrpcService(repo)
 
-	// Создаём и запускаем сервис очистки резервов
-	reservationCleaner := reservation_cleaner.NewReservationCleaner(repo)
-	go reservationCleaner.Start()
 	// Запускаем REST API
-	productHandler := rest.NewProductHandler(productUseCase)
+	productHandler := rest.NewProductHandler(productService)
 	router := rest.NewRouter(productHandler)
 
+	// Обертываем router в CORS
+	corsHandler := rest.UserCors(router)
+
 	// Запускаем gRPC сервер в отдельной горутине
-	go grpc.StartGRPCServer(stockUseCase)
+	go grpc.StartGRPCServer(stockService)
 
 	port := ":8080"
 	log.Println("Starting REST API server on", port)
-	log.Fatal(http.ListenAndServe(port, router))
-}
+	log.Fatal(http.ListenAndServe(port, corsHandler)) // Используем CORS обработчик
+}	

@@ -31,7 +31,7 @@ func NewDatabaseConnection(dbType DatabaseType) (ProductRepository, error) {
 // NewPostgresRepository создает подключение к Postgres
 func NewPostgresRepository() (ProductRepository, error) {
 	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
-		os.Getenv("USER_PRODUCT_SERVICE"),
+		os.Getenv("LOGIN_PRODUCT_SERVICE"),
 		os.Getenv("PASSWORD_PRODUCT_SERVICE"),
 		os.Getenv("DB_HOST"),
 		os.Getenv("DB_PORT"),

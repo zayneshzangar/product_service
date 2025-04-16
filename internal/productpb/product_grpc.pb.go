@@ -19,7 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ProductService_CheckAndReserveStock_FullMethodName = "/product.ProductService/CheckAndReserveStock"
+	ProductService_GetProductStock_FullMethodName    = "/productpb.ProductService/GetProductStock"
+	ProductService_UpdateProductStock_FullMethodName = "/productpb.ProductService/UpdateProductStock"
 )
 
 // ProductServiceClient is the client API for ProductService service.
@@ -28,7 +29,10 @@ const (
 //
 // Определяем сервис ProductService
 type ProductServiceClient interface {
-	CheckAndReserveStock(ctx context.Context, in *StockReservationRequest, opts ...grpc.CallOption) (*StockReservationResponse, error)
+	// Метод для получения информации о stock
+	GetProductStock(ctx context.Context, in *ProductStockRequest, opts ...grpc.CallOption) (*ProductStockResponse, error)
+	// Метод для обновления количества продуктов
+	UpdateProductStock(ctx context.Context, in *UpdateProductStockRequest, opts ...grpc.CallOption) (*UpdateProductStockResponse, error)
 }
 
 type productServiceClient struct {
@@ -39,10 +43,20 @@ func NewProductServiceClient(cc grpc.ClientConnInterface) ProductServiceClient {
 	return &productServiceClient{cc}
 }
 
-func (c *productServiceClient) CheckAndReserveStock(ctx context.Context, in *StockReservationRequest, opts ...grpc.CallOption) (*StockReservationResponse, error) {
+func (c *productServiceClient) GetProductStock(ctx context.Context, in *ProductStockRequest, opts ...grpc.CallOption) (*ProductStockResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(StockReservationResponse)
-	err := c.cc.Invoke(ctx, ProductService_CheckAndReserveStock_FullMethodName, in, out, cOpts...)
+	out := new(ProductStockResponse)
+	err := c.cc.Invoke(ctx, ProductService_GetProductStock_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productServiceClient) UpdateProductStock(ctx context.Context, in *UpdateProductStockRequest, opts ...grpc.CallOption) (*UpdateProductStockResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateProductStockResponse)
+	err := c.cc.Invoke(ctx, ProductService_UpdateProductStock_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +69,10 @@ func (c *productServiceClient) CheckAndReserveStock(ctx context.Context, in *Sto
 //
 // Определяем сервис ProductService
 type ProductServiceServer interface {
-	CheckAndReserveStock(context.Context, *StockReservationRequest) (*StockReservationResponse, error)
+	// Метод для получения информации о stock
+	GetProductStock(context.Context, *ProductStockRequest) (*ProductStockResponse, error)
+	// Метод для обновления количества продуктов
+	UpdateProductStock(context.Context, *UpdateProductStockRequest) (*UpdateProductStockResponse, error)
 	mustEmbedUnimplementedProductServiceServer()
 }
 
@@ -66,8 +83,11 @@ type ProductServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedProductServiceServer struct{}
 
-func (UnimplementedProductServiceServer) CheckAndReserveStock(context.Context, *StockReservationRequest) (*StockReservationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CheckAndReserveStock not implemented")
+func (UnimplementedProductServiceServer) GetProductStock(context.Context, *ProductStockRequest) (*ProductStockResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetProductStock not implemented")
+}
+func (UnimplementedProductServiceServer) UpdateProductStock(context.Context, *UpdateProductStockRequest) (*UpdateProductStockResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateProductStock not implemented")
 }
 func (UnimplementedProductServiceServer) mustEmbedUnimplementedProductServiceServer() {}
 func (UnimplementedProductServiceServer) testEmbeddedByValue()                        {}
@@ -90,20 +110,38 @@ func RegisterProductServiceServer(s grpc.ServiceRegistrar, srv ProductServiceSer
 	s.RegisterService(&ProductService_ServiceDesc, srv)
 }
 
-func _ProductService_CheckAndReserveStock_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(StockReservationRequest)
+func _ProductService_GetProductStock_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ProductStockRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ProductServiceServer).CheckAndReserveStock(ctx, in)
+		return srv.(ProductServiceServer).GetProductStock(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ProductService_CheckAndReserveStock_FullMethodName,
+		FullMethod: ProductService_GetProductStock_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ProductServiceServer).CheckAndReserveStock(ctx, req.(*StockReservationRequest))
+		return srv.(ProductServiceServer).GetProductStock(ctx, req.(*ProductStockRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_UpdateProductStock_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateProductStockRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProductServiceServer).UpdateProductStock(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProductService_UpdateProductStock_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProductServiceServer).UpdateProductStock(ctx, req.(*UpdateProductStockRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -112,12 +150,16 @@ func _ProductService_CheckAndReserveStock_Handler(srv interface{}, ctx context.C
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var ProductService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "product.ProductService",
+	ServiceName: "productpb.ProductService",
 	HandlerType: (*ProductServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CheckAndReserveStock",
-			Handler:    _ProductService_CheckAndReserveStock_Handler,
+			MethodName: "GetProductStock",
+			Handler:    _ProductService_GetProductStock_Handler,
+		},
+		{
+			MethodName: "UpdateProductStock",
+			Handler:    _ProductService_UpdateProductStock_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

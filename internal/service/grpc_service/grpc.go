@@ -2,47 +2,52 @@ package grpc_service
 
 import (
 	"context"
-	"fmt"
-
 	"product_service/internal/productpb"
 	"product_service/internal/repository"
 	"product_service/internal/service"
 )
 
-type stockUseCase struct {
+type grpcService struct {
 	repo repository.ProductRepository
 }
 
-func NewStockUseCase(repo repository.ProductRepository) service.StockUseCase {
-	return &stockUseCase{repo: repo}
+func NewGrpcService(repo repository.ProductRepository) service.GrpcService {
+	return &grpcService{repo: repo}
 }
 
-func (u *stockUseCase) CheckAndReserveStock(ctx context.Context, req *productpb.StockReservationRequest) (*productpb.StockReservationResponse, error) {
-	tx, err := u.repo.BeginTransaction()
-	if err != nil {
-		return &productpb.StockReservationResponse{Success: false, Message: "DB transaction error"}, err
+func (s *grpcService) GetProductStock(ctx context.Context, req *productpb.ProductStockRequest) (*productpb.ProductStockResponse, error) {
+	productIds := req.GetProductIds()
+	res := &productpb.ProductStockResponse{
+		StockMap: make(map[int64]*productpb.ProductStockInfo), // Инициализация карты
 	}
-	defer tx.Rollback()
-
-	for _, item := range req.Items {
-		product, err := u.repo.GetProductByID(ctx, item.ProductId)
+	for _, productId := range productIds {
+		product, err := s.repo.GetByID(productId)
 		if err != nil {
-			return &productpb.StockReservationResponse{Success: false, Message: fmt.Sprintf("Product %d not found", item.ProductId)}, nil
+			return nil, err
 		}
 
-		if product.Stock < int(item.Quantity) {
-			return &productpb.StockReservationResponse{Success: false, Message: fmt.Sprintf("Not enough stock for product %d", item.ProductId)}, nil
+		res.StockMap[productId] = &productpb.ProductStockInfo{
+			Stock: product.Stock,
+			Name:  product.Name,
 		}
+	}
 
-		err = u.repo.ReserveStock(ctx, tx, req.OrderId, item.ProductId, int(item.Quantity))
+	return res, nil
+}
+
+func (s *grpcService) UpdateProductStock(ctx context.Context, req *productpb.UpdateProductStockRequest) (*productpb.UpdateProductStockResponse, error) {
+	updates := req.GetUpdates()
+	for _, update := range updates {
+		productId := update.GetProductId()
+		quantity := update.GetQuantity()
+
+		err := s.repo.UpdateStock(productId, quantity)
 		if err != nil {
-			return &productpb.StockReservationResponse{Success: false, Message: "Failed to reserve stock"}, err
+			return nil, err
 		}
 	}
 
-	if err := tx.Commit(); err != nil {
-		return &productpb.StockReservationResponse{Success: false, Message: "Transaction commit failed"}, err
-	}
-
-	return &productpb.StockReservationResponse{Success: true, Message: "Stock reserved successfully"}, nil
+	return &productpb.UpdateProductStockResponse{
+		Error: "",
+	}, nil
 }

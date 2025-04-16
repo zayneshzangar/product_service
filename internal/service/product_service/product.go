@@ -8,18 +8,18 @@ import (
 	"time"
 )
 
-// productUseCase — реализация use case
-type productUseCase struct {
+// productService — реализация use case
+type productService struct {
 	productRepo repository.ProductRepository
 }
 
-// NewProductUseCase создает новый use case
-func NewProductUseCase(productRepo repository.ProductRepository) service.ProductUseCase {
-	return &productUseCase{productRepo: productRepo} // ВОЗВРАЩАЕМ УКАЗАТЕЛЬ
+// NewProductService создает новый use case
+func NewProductService(productRepo repository.ProductRepository) service.ProductService {
+	return &productService{productRepo: productRepo} // ВОЗВРАЩАЕМ УКАЗАТЕЛЬ
 }
 
 // CreateProduct создает новый продукт
-func (u *productUseCase) CreateProduct(name, description string, price float64, stock int) (*entity.Product, error) {
+func (u *productService) CreateProduct(name, description string, price float64, stock int64) (*entity.Product, error) {
 	if name == "" || price <= 0 || stock < 0 {
 		return nil, errors.New("invalid product data")
 	}
@@ -41,17 +41,17 @@ func (u *productUseCase) CreateProduct(name, description string, price float64, 
 }
 
 // GetProductByID получает продукт по ID
-func (u *productUseCase) GetProductByID(id int64) (*entity.Product, error) {
+func (u *productService) GetProductByID(id int64) (*entity.Product, error) {
 	return u.productRepo.GetByID(id)
 }
 
 // GetAllProducts получает все продукты
-func (u *productUseCase) GetAllProducts() ([]*entity.Product, error) {
+func (u *productService) GetAllProducts() ([]*entity.Product, error) {
 	return u.productRepo.GetAll()
 }
 
 // UpdateProduct обновляет продукт
-func (u *productUseCase) UpdateProduct(product *entity.Product) error {
+func (u *productService) UpdateProduct(product *entity.Product) error {
 	if product.ID == 0 {
 		return errors.New("invalid product ID")
 	}
@@ -60,6 +60,6 @@ func (u *productUseCase) UpdateProduct(product *entity.Product) error {
 }
 
 // DeleteProduct удаляет продукт
-func (u *productUseCase) DeleteProduct(id int64) error {
+func (u *productService) DeleteProduct(id int64) error {
 	return u.productRepo.Delete(id)
 }

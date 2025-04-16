@@ -1,28 +1,43 @@
 syntax = "proto3";
 
-package product;
+package productpb;
 
 option go_package = "internal/productpb";
 
 // Определяем сервис ProductService
 service ProductService {
-  rpc CheckAndReserveStock (StockReservationRequest) returns (StockReservationResponse);
+  // Метод для получения информации о stock
+  rpc GetProductStock (ProductStockRequest) returns (ProductStockResponse);
+  // Метод для обновления количества продуктов
+  rpc UpdateProductStock (UpdateProductStockRequest) returns (UpdateProductStockResponse);
 }
 
-// Запрос на проверку и резервирование товаров
-message StockReservationRequest {
-  int64 order_id = 1;
-  repeated OrderItem items = 2;
+// Запрос на получение информации о stock
+message ProductStockRequest {
+  repeated int64 product_ids = 1; // Список идентификаторов продуктов
 }
 
-// Ответ от Product Service
-message StockReservationResponse {
-  bool success = 1;
-  string message = 2;
+// Информация о продукте
+message ProductStockInfo {
+  int64 stock = 1;      // Количество на складе
+  string name = 2;      // Название продукта
 }
 
-// Элемент заказа
-message OrderItem {
-  int64 product_id = 1;
-  int32 quantity = 2;
+// Ответ с информацией о stock
+message ProductStockResponse {
+  map<int64, ProductStockInfo> stock_map = 1; // Карта, где ключ - product_id, значение - информация о продукте
+}
+
+// Запрос на обновление количества продуктов
+message UpdateProductStockRequest {
+  message StockUpdate {
+    int64 product_id = 1;
+    int64 quantity = 2;
+  }
+  repeated StockUpdate updates = 1;
+}
+
+// Ответ на обновление количества продуктов
+message UpdateProductStockResponse {
+  string error = 1; // Пустая строка означает успех, иначе содержит текст ошибки
 }

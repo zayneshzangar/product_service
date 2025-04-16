@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"context"
-	"database/sql"
 	"product_service/internal/entity"
 )
 
@@ -12,9 +10,7 @@ type ProductRepository interface {
 	GetByID(id int64) (*entity.Product, error)
 	GetAll() ([]*entity.Product, error)
 	Update(product *entity.Product) error
+	UpdateStock(productId int64, quantity int64) error
 	Delete(id int64) error
-	BeginTransaction() (*sql.Tx, error)
-	GetProductByID(ctx context.Context, productID int64) (*entity.Product, error)
-	ReserveStock(ctx context.Context, tx *sql.Tx, orderID, productID int64, quantity int) error
-	ClearExpiredReservations(ctx context.Context) error
+	Close() error
 }

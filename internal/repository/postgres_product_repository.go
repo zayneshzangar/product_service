@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"context"
 	"database/sql"
+	"fmt"
 	"product_service/internal/entity"
 )
 
@@ -11,10 +11,10 @@ type PostgresProductRepository struct {
 	db *sql.DB
 }
 
-// NewPostgresProductRepository создаёт новый Postgres-репозиторий
-func NewPostgresProductRepository(db *sql.DB) ProductRepository {
-	return &PostgresProductRepository{db: db}
-}
+// // NewPostgresProductRepository создаёт новый Postgres-репозиторий
+// func NewPostgresProductRepository(db *sql.DB) ProductRepository {
+// 	return &PostgresProductRepository{db: db}
+// }
 
 // Методы работы с продуктами
 
@@ -61,27 +61,24 @@ func (r *PostgresProductRepository) Delete(id int64) error {
 	return err
 }
 
-// STOCK methods
-func (r *PostgresProductRepository) BeginTransaction() (*sql.Tx, error) {
-	return r.db.Begin()
+func (r *PostgresProductRepository) Close() error {
+	return r.db.Close()
 }
 
-func (r *PostgresProductRepository) GetProductByID(ctx context.Context, productID int64) (*entity.Product, error) {
-	product := &entity.Product{}
-	err := r.db.QueryRowContext(ctx, "SELECT id, stock FROM products WHERE id = $1", productID).
-		Scan(&product.ID, &product.Stock)
+func (r *PostgresProductRepository) UpdateStock(productId int64, quantity int64) error {
+	result, err := r.db.Exec("UPDATE products SET stock = stock - $1, updated_at = NOW() WHERE id = $2 AND stock >= $1", quantity, productId)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return product, nil
-}
 
-func (r *PostgresProductRepository) ReserveStock(ctx context.Context, tx *sql.Tx, orderID, productID int64, quantity int) error {
-	_, err := tx.ExecContext(ctx, "INSERT INTO reserved_stock (order_id, product_id, quantity) VALUES ($1, $2, $3)", orderID, productID, quantity)
-	return err
-}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
 
-func (r *PostgresProductRepository) ClearExpiredReservations(ctx context.Context) error {
-	_, err := r.db.ExecContext(ctx, `DELETE FROM reserved_stock WHERE created_at < NOW() - INTERVAL '15 minutes'`)
-	return err
+	if rowsAffected == 0 {
+		return fmt.Errorf("insufficient stock for product %d", productId)
+	}
+
+	return nil
 }
